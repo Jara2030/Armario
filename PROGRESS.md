@@ -21,7 +21,7 @@ retomar el trabajo leyendo solo esto. **Mantenerlo siempre actualizado.**
 | Fase | Estado |
 |---|---|
 | 1. MVP (prendas, fotos, filtros, estados, "hoy", copia de seguridad) | Hecho y probado en navegador |
-| 2. Workflows de GitHub Actions (APK, Windows, .ipa, PWA) | Windows, .ipa y web compilan en CI. APK: falló con Java 17 (lint), corregido a Java 21, **pendiente de confirmar**. Pages: falta que el usuario lo active |
+| 2. Workflows de GitHub Actions (APK, Windows, .ipa, PWA) | **Hecho**: APK, Windows y .ipa compilan en CI y se publican en Releases → `latest`. Solo falla el job de Pages hasta que el usuario lo active |
 | 3. Sincronización con Supabase + login | Código hecho y probado contra un servidor falso; **sin probar contra un Supabase real** |
 | 4. iOS (.ipa sin firmar + PWA) | El .ipa se genera en CI; pendiente de probar en un iPhone real |
 | 5. Extras (conjuntos, historial, sugerencia por tiempo, modo oscuro) | Hecho |
@@ -39,10 +39,9 @@ retomar el trabajo leyendo solo esto. **Mantenerlo siempre actualizado.**
 
 ### Qué NO se ha verificado todavía
 
-- Compilación de Android, Windows e iOS: el entorno donde se escribió el
-  código es un contenedor Linux sin Android SDK, sin Windows y sin macOS.
-  Se compilan en GitHub Actions; hay que mirar la pestaña **Actions** y
-  corregir lo que falle.
+- Las apps compiladas de Android, Windows e iPhone **no se han ejecutado en
+  un dispositivo real** (solo se sabe que compilan en GitHub Actions). La
+  misma app sí se ha probado a fondo en su versión web.
 - Sincronización contra un proyecto real de Supabase (`supabase/schema.sql`
   está validado sintácticamente con un parser de PostgreSQL, pero no ejecutado).
 - Cámara en Android / iPhone y selector de archivos en Windows.
@@ -51,9 +50,8 @@ retomar el trabajo leyendo solo esto. **Mantenerlo siempre actualizado.**
 
 ## Próximo paso exacto
 
-1. Mirar el resultado del workflow **Compilar** en GitHub → Actions. Si falla
-   algún job, leer el log y corregir (lo más probable: versiones de
-   Gradle/AGP en Android, o el empaquetado de `sqlite3` en Windows/iOS).
+1. El usuario instala el APK y el .zip de Windows desde Releases y cuenta
+   qué tal van; corregir lo que salga.
 2. El usuario debe (ver README): activar GitHub Pages (Source: GitHub
    Actions), añadir el secreto `ANDROID_KEYSTORE_BASE64`, crear el proyecto de
    Supabase, ejecutar `supabase/schema.sql` y crear su usuario.
@@ -146,6 +144,8 @@ Las fechas son enteros en milisegundos. Las listas son JSON (texto en local,
   tablas que sincronizar.
 - **Ciudad manual** para el tiempo (geocodificación de Open-Meteo): evita
   permisos de ubicación.
+- **CI con Java 21:** con Java 17 falla `lintVitalAnalyzeRelease` de
+  image_picker_android (`List.removeLast`).
 - **Firma del APK:** si existe `android/app/armario.jks` se usa; si no, clave
   de depuración. En CI sale del secreto `ANDROID_KEYSTORE_BASE64`
   (contraseña y alias: `armario`).
