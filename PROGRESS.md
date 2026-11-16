@@ -21,9 +21,9 @@ retomar el trabajo leyendo solo esto. **Mantenerlo siempre actualizado.**
 | Fase | Estado |
 |---|---|
 | 1. MVP (prendas, fotos, filtros, estados, "hoy", copia de seguridad) | Hecho y probado en navegador |
-| 2. Workflows de GitHub Actions (APK, Windows, .ipa, PWA) | Escritos; **pendiente de ver el resultado de la primera ejecución** |
+| 2. Workflows de GitHub Actions (APK, Windows, .ipa, PWA) | Windows, .ipa y web compilan en CI. APK: falló con Java 17 (lint), corregido a Java 21, **pendiente de confirmar**. Pages: falta que el usuario lo active |
 | 3. Sincronización con Supabase + login | Código hecho y probado contra un servidor falso; **sin probar contra un Supabase real** |
-| 4. iOS (.ipa sin firmar + PWA) | Workflow escrito; pendiente de verificar en CI y en un iPhone |
+| 4. iOS (.ipa sin firmar + PWA) | El .ipa se genera en CI; pendiente de probar en un iPhone real |
 | 5. Extras (conjuntos, historial, sugerencia por tiempo, modo oscuro) | Hecho |
 | 6. README en español | Hecho |
 
