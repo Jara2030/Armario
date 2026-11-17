@@ -34,7 +34,14 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Color de la barra de estado del móvil, igual que el fondo de la app. -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FEF7FF">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#151218">
+  <style>
+    html, body { background: #FEF7FF; }
+    @media (prefers-color-scheme: dark) { html, body { background: #151218; } }
+  </style>
   <meta name="apple-mobile-web-app-title" content="Armario">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
