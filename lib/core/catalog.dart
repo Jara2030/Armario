@@ -88,6 +88,18 @@ class StatusOption {
   const StatusOption(this.key, this.label, this.icon, this.color);
 }
 
+/// Casas donde puede estar una prenda. '' = sin indicar.
+const houses = <String, String>{
+  'mama': 'Casa de mamá',
+  'papa': 'Casa de papá',
+};
+
+String houseShort(String key) => switch (key) {
+      'mama' => 'Mamá',
+      'papa' => 'Papá',
+      _ => 'Sin casa',
+    };
+
 const statusAvailable = 'disponible';
 
 const statusOptions = <StatusOption>[

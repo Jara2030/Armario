@@ -18,8 +18,9 @@ class ItemFormPage extends ConsumerStatefulWidget {
 }
 
 class _ItemFormPageState extends ConsumerState<ItemFormPage> {
+  // Una prenda nueva se crea en la casa en la que estás ahora.
   late final ItemDraft _d = widget.existing == null
-      ? ItemDraft()
+      ? ItemDraft(location: ref.read(settingsProvider).house)
       : ItemDraft.from(widget.existing!);
   late final _name = TextEditingController(text: _d.name);
   late final _brand = TextEditingController(text: _d.brand);
@@ -193,6 +194,15 @@ class _ItemFormPageState extends ConsumerState<ItemFormPage> {
             selected: {_d.type},
             single: true,
             onChanged: (s) => setState(() => _d.type = s.first),
+          ),
+          ChipGroup(
+            title: 'Casa',
+            options: houses,
+            selected: _d.location.isEmpty ? const {} : {_d.location},
+            single: true,
+            allowNone: true,
+            onChanged: (s) =>
+                setState(() => _d.location = s.isEmpty ? '' : s.first),
           ),
           ChipGroup(
             title: 'Colores',

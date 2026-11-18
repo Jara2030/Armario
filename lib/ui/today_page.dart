@@ -24,7 +24,15 @@ class _TodayPageState extends ConsumerState<TodayPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final all = ref.watch(itemsProvider).value ?? const <Item>[];
+    final house = ref.watch(settingsProvider.select((s) => s.house));
+    final everything = ref.watch(itemsProvider).value ?? const <Item>[];
+    // Solo la ropa de la casa en la que estoy (y la que no tiene casa
+    // indicada, por si acaso).
+    final all = house.isEmpty
+        ? everything
+        : everything
+            .where((i) => i.location == house || i.location.isEmpty)
+            .toList();
     final lastWorn = ref.watch(lastWornProvider);
     final weather = ref.watch(weatherProvider).value;
     final width = MediaQuery.sizeOf(context).width;
@@ -82,6 +90,28 @@ class _TodayPageState extends ConsumerState<TodayPage> {
               ),
             ),
             SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(
+                        value: 'mama',
+                        icon: Icon(Icons.home_outlined),
+                        label: Text('Mamá')),
+                    ButtonSegment(
+                        value: 'papa',
+                        icon: Icon(Icons.home_outlined),
+                        label: Text('Papá')),
+                    ButtonSegment(value: '', label: Text('Todo')),
+                  ],
+                  selected: {house},
+                  onSelectionChanged: (s) =>
+                      ref.read(settingsProvider.notifier).setHouse(s.first),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
               child: SizedBox(
                 height: 48,
                 child: ListView(
@@ -111,13 +141,16 @@ class _TodayPageState extends ConsumerState<TodayPage> {
               ),
             ),
             if (all.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 hasScrollBody: false,
                 child: EmptyState(
                   icon: Icons.wb_sunny_outlined,
-                  title: 'Aún no hay prendas',
-                  subtitle:
-                      'Cuando añadas ropa en "Armario", aquí verás qué tienes disponible y una sugerencia para hoy.',
+                  title: everything.isNotEmpty
+                      ? 'No tienes ropa apuntada en esta casa'
+                      : 'Aún no hay prendas',
+                  subtitle: everything.isNotEmpty
+                      ? 'Indica la casa de cada prenda al editarla, o elige "Todo".'
+                      : 'Cuando añadas ropa en "Armario", aquí verás qué tienes disponible y una sugerencia para hoy.',
                 ),
               )
             else ...[

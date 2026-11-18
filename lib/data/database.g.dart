@@ -93,6 +93,18 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     requiredDuringInsert: false,
     defaultValue: const Constant('disponible'),
   );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _photoVersionMeta = const VerificationMeta(
     'photoVersion',
   );
@@ -180,6 +192,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     brand,
     notes,
     status,
+    location,
     photoVersion,
     photoDirty,
     createdAt,
@@ -234,6 +247,12 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       context.handle(
         _statusMeta,
         status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
       );
     }
     if (data.containsKey('photo_version')) {
@@ -330,6 +349,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      )!,
       photoVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}photo_version'],
@@ -381,6 +404,9 @@ class Item extends DataClass implements Insertable<Item> {
   final String notes;
   final String status;
 
+  /// Casa donde está la prenda ('mama', 'papa' o '' si no se ha indicado).
+  final String location;
+
   /// Versión de la foto (ms). null = sin foto.
   final int? photoVersion;
 
@@ -400,6 +426,7 @@ class Item extends DataClass implements Insertable<Item> {
     required this.brand,
     required this.notes,
     required this.status,
+    required this.location,
     this.photoVersion,
     required this.photoDirty,
     required this.createdAt,
@@ -431,6 +458,7 @@ class Item extends DataClass implements Insertable<Item> {
     map['brand'] = Variable<String>(brand);
     map['notes'] = Variable<String>(notes);
     map['status'] = Variable<String>(status);
+    map['location'] = Variable<String>(location);
     if (!nullToAbsent || photoVersion != null) {
       map['photo_version'] = Variable<int>(photoVersion);
     }
@@ -453,6 +481,7 @@ class Item extends DataClass implements Insertable<Item> {
       brand: Value(brand),
       notes: Value(notes),
       status: Value(status),
+      location: Value(location),
       photoVersion: photoVersion == null && nullToAbsent
           ? const Value.absent()
           : Value(photoVersion),
@@ -479,6 +508,7 @@ class Item extends DataClass implements Insertable<Item> {
       brand: serializer.fromJson<String>(json['brand']),
       notes: serializer.fromJson<String>(json['notes']),
       status: serializer.fromJson<String>(json['status']),
+      location: serializer.fromJson<String>(json['location']),
       photoVersion: serializer.fromJson<int?>(json['photoVersion']),
       photoDirty: serializer.fromJson<bool>(json['photoDirty']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
@@ -500,6 +530,7 @@ class Item extends DataClass implements Insertable<Item> {
       'brand': serializer.toJson<String>(brand),
       'notes': serializer.toJson<String>(notes),
       'status': serializer.toJson<String>(status),
+      'location': serializer.toJson<String>(location),
       'photoVersion': serializer.toJson<int?>(photoVersion),
       'photoDirty': serializer.toJson<bool>(photoDirty),
       'createdAt': serializer.toJson<int>(createdAt),
@@ -519,6 +550,7 @@ class Item extends DataClass implements Insertable<Item> {
     String? brand,
     String? notes,
     String? status,
+    String? location,
     Value<int?> photoVersion = const Value.absent(),
     bool? photoDirty,
     int? createdAt,
@@ -535,6 +567,7 @@ class Item extends DataClass implements Insertable<Item> {
     brand: brand ?? this.brand,
     notes: notes ?? this.notes,
     status: status ?? this.status,
+    location: location ?? this.location,
     photoVersion: photoVersion.present ? photoVersion.value : this.photoVersion,
     photoDirty: photoDirty ?? this.photoDirty,
     createdAt: createdAt ?? this.createdAt,
@@ -553,6 +586,7 @@ class Item extends DataClass implements Insertable<Item> {
       brand: data.brand.present ? data.brand.value : this.brand,
       notes: data.notes.present ? data.notes.value : this.notes,
       status: data.status.present ? data.status.value : this.status,
+      location: data.location.present ? data.location.value : this.location,
       photoVersion: data.photoVersion.present
           ? data.photoVersion.value
           : this.photoVersion,
@@ -578,6 +612,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('brand: $brand, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
+          ..write('location: $location, ')
           ..write('photoVersion: $photoVersion, ')
           ..write('photoDirty: $photoDirty, ')
           ..write('createdAt: $createdAt, ')
@@ -599,6 +634,7 @@ class Item extends DataClass implements Insertable<Item> {
     brand,
     notes,
     status,
+    location,
     photoVersion,
     photoDirty,
     createdAt,
@@ -619,6 +655,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.brand == this.brand &&
           other.notes == this.notes &&
           other.status == this.status &&
+          other.location == this.location &&
           other.photoVersion == this.photoVersion &&
           other.photoDirty == this.photoDirty &&
           other.createdAt == this.createdAt &&
@@ -637,6 +674,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String> brand;
   final Value<String> notes;
   final Value<String> status;
+  final Value<String> location;
   final Value<int?> photoVersion;
   final Value<bool> photoDirty;
   final Value<int> createdAt;
@@ -654,6 +692,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.brand = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
+    this.location = const Value.absent(),
     this.photoVersion = const Value.absent(),
     this.photoDirty = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -672,6 +711,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.brand = const Value.absent(),
     this.notes = const Value.absent(),
     this.status = const Value.absent(),
+    this.location = const Value.absent(),
     this.photoVersion = const Value.absent(),
     this.photoDirty = const Value.absent(),
     required int createdAt,
@@ -696,6 +736,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? brand,
     Expression<String>? notes,
     Expression<String>? status,
+    Expression<String>? location,
     Expression<int>? photoVersion,
     Expression<bool>? photoDirty,
     Expression<int>? createdAt,
@@ -714,6 +755,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (brand != null) 'brand': brand,
       if (notes != null) 'notes': notes,
       if (status != null) 'status': status,
+      if (location != null) 'location': location,
       if (photoVersion != null) 'photo_version': photoVersion,
       if (photoDirty != null) 'photo_dirty': photoDirty,
       if (createdAt != null) 'created_at': createdAt,
@@ -734,6 +776,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String>? brand,
     Value<String>? notes,
     Value<String>? status,
+    Value<String>? location,
     Value<int?>? photoVersion,
     Value<bool>? photoDirty,
     Value<int>? createdAt,
@@ -752,6 +795,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       brand: brand ?? this.brand,
       notes: notes ?? this.notes,
       status: status ?? this.status,
+      location: location ?? this.location,
       photoVersion: photoVersion ?? this.photoVersion,
       photoDirty: photoDirty ?? this.photoDirty,
       createdAt: createdAt ?? this.createdAt,
@@ -798,6 +842,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
     if (photoVersion.present) {
       map['photo_version'] = Variable<int>(photoVersion.value);
     }
@@ -834,6 +881,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('brand: $brand, ')
           ..write('notes: $notes, ')
           ..write('status: $status, ')
+          ..write('location: $location, ')
           ..write('photoVersion: $photoVersion, ')
           ..write('photoDirty: $photoDirty, ')
           ..write('createdAt: $createdAt, ')
@@ -2404,6 +2452,7 @@ typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   Value<String> brand,
   Value<String> notes,
   Value<String> status,
+  Value<String> location,
   Value<int?> photoVersion,
   Value<bool> photoDirty,
   required int createdAt,
@@ -2422,6 +2471,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<String> brand,
   Value<String> notes,
   Value<String> status,
+  Value<String> location,
   Value<int?> photoVersion,
   Value<bool> photoDirty,
   Value<int> createdAt,
@@ -2484,6 +2534,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2572,6 +2627,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get photoVersion => $composableBuilder(
     column: $table.photoVersion,
     builder: (column) => ColumnOrderings(column),
@@ -2639,6 +2699,9 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
   GeneratedColumn<int> get photoVersion => $composableBuilder(
     column: $table.photoVersion,
     builder: (column) => column,
@@ -2699,6 +2762,7 @@ class $$ItemsTableTableManager
                 Value<String> brand = const Value.absent(),
                 Value<String> notes = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> location = const Value.absent(),
                 Value<int?> photoVersion = const Value.absent(),
                 Value<bool> photoDirty = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
@@ -2716,6 +2780,7 @@ class $$ItemsTableTableManager
                 brand: brand,
                 notes: notes,
                 status: status,
+                location: location,
                 photoVersion: photoVersion,
                 photoDirty: photoDirty,
                 createdAt: createdAt,
@@ -2735,6 +2800,7 @@ class $$ItemsTableTableManager
                 Value<String> brand = const Value.absent(),
                 Value<String> notes = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String> location = const Value.absent(),
                 Value<int?> photoVersion = const Value.absent(),
                 Value<bool> photoDirty = const Value.absent(),
                 required int createdAt,
@@ -2752,6 +2818,7 @@ class $$ItemsTableTableManager
                 brand: brand,
                 notes: notes,
                 status: status,
+                location: location,
                 photoVersion: photoVersion,
                 photoDirty: photoDirty,
                 createdAt: createdAt,

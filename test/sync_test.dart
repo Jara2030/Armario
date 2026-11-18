@@ -119,6 +119,22 @@ void main() {
     expect(await a.watchPendingCount().first, 0);
   });
 
+  test('la casa viaja con la sincronización y la copia', () async {
+    final id = await a.saveItem(ItemDraft(type: 'camisa', location: 'mama'));
+    await sa.run();
+    await sb.run();
+    expect((await b.getItem(id))!.location, 'mama');
+    await tick();
+    await b.setLocation([id], 'papa');
+    await sb.run();
+    await sa.run();
+    expect((await a.getItem(id))!.location, 'papa');
+    final c = memDb();
+    await BackupService(c).import(await BackupService(a).export());
+    expect((await c.getItem(id))!.location, 'papa');
+    await c.close();
+  });
+
   test('gana la modificación más reciente', () async {
     final id = await a.saveItem(ItemDraft(name: 'v1', type: 'camisa'));
     await sa.run();

@@ -73,7 +73,7 @@ enum ItemSort { recent, forgotten, mostWorn }
 
 class ItemFilter {
   final String query;
-  final Set<String> types, colors, seasons, occasions, statuses;
+  final Set<String> types, colors, seasons, occasions, statuses, locations;
   final ItemSort sort;
   const ItemFilter({
     this.query = '',
@@ -82,6 +82,7 @@ class ItemFilter {
     this.seasons = const {},
     this.occasions = const {},
     this.statuses = const {},
+    this.locations = const {},
     this.sort = ItemSort.recent,
   });
 
@@ -90,7 +91,8 @@ class ItemFilter {
       colors.length +
       seasons.length +
       occasions.length +
-      statuses.length;
+      statuses.length +
+      locations.length;
 
   ItemFilter copyWith({
     String? query,
@@ -99,6 +101,7 @@ class ItemFilter {
     Set<String>? seasons,
     Set<String>? occasions,
     Set<String>? statuses,
+    Set<String>? locations,
     ItemSort? sort,
   }) =>
       ItemFilter(
@@ -108,6 +111,7 @@ class ItemFilter {
         seasons: seasons ?? this.seasons,
         occasions: occasions ?? this.occasions,
         statuses: statuses ?? this.statuses,
+        locations: locations ?? this.locations,
         sort: sort ?? this.sort,
       );
 
@@ -116,6 +120,7 @@ class ItemFilter {
   bool matches(Item i) {
     if (types.isNotEmpty && !types.contains(i.type)) return false;
     if (statuses.isNotEmpty && !statuses.contains(i.status)) return false;
+    if (locations.isNotEmpty && !locations.contains(i.location)) return false;
     if (colors.isNotEmpty && !i.colors.any(colors.contains)) return false;
     if (seasons.isNotEmpty && !i.seasons.any(seasons.contains)) return false;
     if (occasions.isNotEmpty && !i.occasions.any(occasions.contains)) {
@@ -132,6 +137,7 @@ class ItemFilter {
         ...i.seasons.map((s) => _seasonLabels[s] ?? s),
         ...i.occasions.map((o) => _occasionLabels[o] ?? o),
         statusOf(i.status).label,
+        if (i.location.isNotEmpty) houses[i.location] ?? '',
       ].join(' '));
       for (final word in q.split(' ')) {
         if (!text.contains(word)) return false;
@@ -189,10 +195,14 @@ class AppSettings {
   final ThemeMode themeMode;
   final String city;
   final double? lat, lon;
+
+  /// Casa en la que estoy ahora ('' = no filtrar por casa).
+  final String house;
   final String supabaseUrl, supabaseKey;
   const AppSettings({
     this.themeMode = ThemeMode.system,
     this.city = '',
+    this.house = '',
     this.lat,
     this.lon,
     this.supabaseUrl = '',
@@ -213,6 +223,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
     return AppSettings(
       themeMode: ThemeMode.values[p.getInt('theme') ?? 0],
       city: p.getString('city') ?? '',
+      house: p.getString('house') ?? '',
       lat: p.getDouble('lat'),
       lon: p.getDouble('lon'),
       supabaseUrl: url.isNotEmpty ? url : _envUrl,
@@ -230,6 +241,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
     await _p.setDouble('lat', lat);
     await _p.setDouble('lon', lon);
     await _p.remove('weather_cache');
+    ref.invalidateSelf();
+  }
+
+  Future<void> setHouse(String house) async {
+    await _p.setString('house', house);
     ref.invalidateSelf();
   }
 

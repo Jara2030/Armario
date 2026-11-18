@@ -136,6 +136,31 @@ class ItemCard extends StatelessWidget {
                   ),
                 ),
               ),
+            if (item.location.isNotEmpty && !selected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0x99000000),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.home, size: 13, color: Colors.white),
+                      const SizedBox(width: 3),
+                      Text(houseShort(item.location),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ),
             if (selected)
               Container(
                 decoration: BoxDecoration(
@@ -192,6 +217,9 @@ class ChipGroup extends StatelessWidget {
   final ValueChanged<Set<String>> onChanged;
   final Widget? Function(String key)? avatar;
   final bool single;
+
+  /// En modo [single], volver a tocar la opción elegida la desmarca.
+  final bool allowNone;
   const ChipGroup({
     super.key,
     required this.title,
@@ -200,6 +228,7 @@ class ChipGroup extends StatelessWidget {
     required this.onChanged,
     this.avatar,
     this.single = false,
+    this.allowNone = false,
   });
 
   @override
@@ -222,7 +251,7 @@ class ChipGroup extends StatelessWidget {
                 selected: selected.contains(e.key),
                 onSelected: (on) {
                   if (single) {
-                    onChanged({e.key});
+                    onChanged(allowNone && !on ? <String>{} : {e.key});
                     return;
                   }
                   final next = {...selected};
@@ -240,6 +269,7 @@ class ChipGroup extends StatelessWidget {
 final typeLabels = {for (final t in garmentTypes) t.key: t.label};
 final colorLabels = {for (final c in colorOptions) c.key: c.label};
 final statusLabels = {for (final s in statusOptions) s.key: s.label};
+const houseFilterLabels = {'mama': 'Mamá', 'papa': 'Papá', '': 'Sin casa'};
 
 Widget? colorAvatar(String key) {
   final c = colorOf(key);
@@ -297,17 +327,19 @@ class EmptyState extends StatelessWidget {
 Future<void> showStatusSheet(
     BuildContext context, WidgetRef ref, Item item) async {
   final picked = await showModalBottomSheet<String>(
+    isScrollControlled: true,
     context: context,
     showDragHandle: true,
     constraints: const BoxConstraints(maxWidth: 520),
     builder: (context) => SafeArea(
-      child: Column(
+      child: SingleChildScrollView(
+       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
             title: Text(itemTitle(item),
                 style: Theme.of(context).textTheme.titleMedium),
-            subtitle: const Text('Cambiar estado'),
+            subtitle: const Text('Cambiar estado o casa'),
           ),
           for (final s in statusOptions)
             ListTile(
@@ -316,12 +348,26 @@ Future<void> showStatusSheet(
               trailing: item.status == s.key ? const Icon(Icons.check) : null,
               onTap: () => Navigator.pop(context, s.key),
             ),
+          const Divider(),
+          for (final h in houses.entries)
+            ListTile(
+              leading: const Icon(Icons.home_outlined),
+              title: Text('Está en ${h.value.toLowerCase()}'),
+              trailing: item.location == h.key ? const Icon(Icons.check) : null,
+              onTap: () => Navigator.pop(context, 'casa:${h.key}'),
+            ),
           const SizedBox(height: 8),
         ],
+       ),
       ),
     ),
   );
-  if (picked != null && picked != item.status) {
-    await ref.read(dbProvider).setStatus([item.id], picked);
+  if (picked == null) return;
+  final db = ref.read(dbProvider);
+  if (picked.startsWith('casa:')) {
+    final house = picked.substring(5);
+    if (house != item.location) await db.setLocation([item.id], house);
+  } else if (picked != item.status) {
+    await db.setStatus([item.id], picked);
   }
 }

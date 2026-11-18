@@ -35,6 +35,9 @@ class Items extends Table {
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get status => text().withDefault(const Constant('disponible'))();
 
+  /// Casa donde está la prenda ('mama', 'papa' o '' si no se ha indicado).
+  TextColumn get location => text().withDefault(const Constant(''))();
+
   /// Versión de la foto (ms). null = sin foto.
   IntColumn get photoVersion => integer().nullable()();
 
@@ -108,6 +111,7 @@ class ItemDraft {
   String brand;
   String notes;
   String status;
+  String location;
   ItemDraft({
     this.name = '',
     this.type = 'camiseta',
@@ -117,6 +121,7 @@ class ItemDraft {
     this.brand = '',
     this.notes = '',
     this.status = statusAvailable,
+    this.location = '',
   })  : colors = colors ?? [],
         seasons = seasons ?? [],
         occasions = occasions ?? [];
@@ -130,6 +135,7 @@ class ItemDraft {
         brand: i.brand,
         notes: i.notes,
         status: i.status,
+        location: i.location,
       );
 }
 
@@ -153,7 +159,14 @@ class AppDatabase extends _$AppDatabase {
         ));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) await m.addColumn(items, items.location);
+        },
+      );
 
   // ---------------------------------------------------------------- prendas
 
@@ -184,6 +197,7 @@ class AppDatabase extends _$AppDatabase {
           brand: Value(d.brand),
           notes: Value(d.notes),
           status: Value(d.status),
+          location: Value(d.location),
           photoVersion: Value(photo == null ? null : now),
           photoDirty: Value(photo != null),
           createdAt: now,
@@ -200,6 +214,7 @@ class AppDatabase extends _$AppDatabase {
           brand: Value(d.brand),
           notes: Value(d.notes),
           status: Value(d.status),
+          location: Value(d.location),
           photoVersion: photo == null ? const Value.absent() : Value(now),
           photoDirty: photo == null ? const Value.absent() : const Value(true),
           updatedAt: Value(now),
@@ -216,6 +231,16 @@ class AppDatabase extends _$AppDatabase {
       }
       return itemId;
     });
+  }
+
+  Future<void> setLocation(Iterable<String> ids, String location) async {
+    final list = ids.toList();
+    if (list.isEmpty) return;
+    await (update(items)..where((t) => t.id.isIn(list))).write(ItemsCompanion(
+      location: Value(location),
+      updatedAt: Value(nowMs()),
+      dirty: const Value(true),
+    ));
   }
 
   Future<void> setStatus(Iterable<String> ids, String status) async {

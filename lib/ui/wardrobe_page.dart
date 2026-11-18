@@ -198,6 +198,9 @@ class _WardrobePageState extends ConsumerState<WardrobePage> {
       for (final k in f.statuses)
         chip(statusOf(k).label,
             () => n.set(f.copyWith(statuses: without(f.statuses, k)))),
+      for (final k in f.locations)
+        chip(houseFilterLabels[k] ?? k,
+            () => n.set(f.copyWith(locations: without(f.locations, k)))),
       for (final k in f.types)
         chip(typeOf(k).label,
             () => n.set(f.copyWith(types: without(f.types, k)))),
@@ -249,6 +252,12 @@ class _FilterSheet extends ConsumerWidget {
                   options: statusLabels,
                   selected: f.statuses,
                   onChanged: (s) => n.set(f.copyWith(statuses: s)),
+                ),
+                ChipGroup(
+                  title: 'Casa',
+                  options: houseFilterLabels,
+                  selected: f.locations,
+                  onChanged: (s) => n.set(f.copyWith(locations: s)),
                 ),
                 ChipGroup(
                   title: 'Tipo',

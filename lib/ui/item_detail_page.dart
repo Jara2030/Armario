@@ -194,6 +194,25 @@ class _Info extends ConsumerWidget {
             ],
           ),
         ),
+        section(
+          'Casa',
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final h in houses.entries)
+                ChoiceChip(
+                  avatar: item.location == h.key
+                      ? null
+                      : const Icon(Icons.home_outlined, size: 18),
+                  label: Text(h.value),
+                  selected: item.location == h.key,
+                  onSelected: (on) =>
+                      db.setLocation([item.id], on ? h.key : ''),
+                ),
+            ],
+          ),
+        ),
         if (item.colors.isNotEmpty)
           section(
               'Colores',

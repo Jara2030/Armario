@@ -9,7 +9,8 @@ Item item(String id, String type,
         List<String> seasons = const [],
         List<String> occasions = const [],
         String status = 'disponible',
-        String brand = ''}) =>
+        String brand = '',
+        String location = ''}) =>
     Item(
         id: id,
         name: name,
@@ -20,6 +21,7 @@ Item item(String id, String type,
         brand: brand,
         notes: '',
         status: status,
+        location: location,
         photoVersion: null,
         photoDirty: false,
         createdAt: 0,
@@ -35,7 +37,8 @@ void main() {
     item('4', 'zapatos', colors: ['blanco', 'azul'], occasions: ['deporte']),
     item('5', 'abrigo', colors: ['gris'], seasons: ['invierno']),
     item('6', 'jersey', seasons: ['invierno', 'otono']),
-    item('7', 'pantalon_corto', seasons: ['verano']),
+    item('7', 'pantalon_corto', seasons: ['verano'], location: 'mama'),
+    item('8', 'falda', seasons: ['verano'], location: 'papa'),
   ];
   List<String> ids(ItemFilter f) =>
       items.where(f.matches).map((i) => i.id).toList();
@@ -47,6 +50,13 @@ void main() {
     expect(ids(const ItemFilter(types: {'abrigo'}, statuses: {'disponible'})),
         ['5']);
     expect(const ItemFilter(colors: {'azul'}, types: {'a', 'b'}).activeCount, 3);
+  });
+
+  test('filtro por casa', () {
+    expect(ids(const ItemFilter(locations: {'mama'})), ['7']);
+    expect(ids(const ItemFilter(locations: {'mama', 'papa'})), ['7', '8']);
+    expect(ids(const ItemFilter(locations: {''})), ['1', '2', '3', '4', '5', '6']);
+    expect(ids(const ItemFilter(query: 'casa de papa')), ['8']);
   });
 
   test('búsqueda sin tildes ni mayúsculas', () {

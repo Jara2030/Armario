@@ -48,6 +48,16 @@ retomar el trabajo leyendo solo esto. **Mantenerlo siempre actualizado.**
 - Open-Meteo solo se ha probado sin ciudad configurada (la lógica de la
   sugerencia tiene tests; la llamada HTTP no).
 
+## Casa (mamá / papá)
+
+Pedido por el usuario (vive en dos casas). Columna `items.location`
+('mama', 'papa' o ''), esquema local v2 con migración (`test/migration_test.dart`)
+y `alter table ... add column if not exists location` en `supabase/schema.sql`.
+Se elige en el formulario (por defecto, la casa actual), se cambia en el
+detalle o con pulsación larga, se filtra en Armario, y en "Hoy" un selector
+Mamá / Papá / Todo (guardado en preferencias) limita lo disponible y la
+sugerencia a esa casa (más lo que no tiene casa indicada).
+
 ## Próximo paso exacto
 
 1. El usuario instala el APK y el .zip de Windows desde Releases y cuenta

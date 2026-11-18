@@ -24,6 +24,7 @@ create table if not exists public.items (
   brand text not null default '',
   notes text not null default '',
   status text not null default 'disponible',
+  location text not null default '',     -- casa: 'mama', 'papa' o ''
   photo_version bigint,
   created_at bigint not null,
   updated_at bigint not null,          -- reloj del dispositivo (ms)
@@ -54,6 +55,10 @@ create table if not exists public.wear_logs (
   deleted boolean not null default false,
   server_updated_at timestamptz not null default clock_timestamp()
 );
+
+-- Columnas añadidas después (para proyectos creados con una versión anterior
+-- de este archivo).
+alter table public.items add column if not exists location text not null default '';
 
 create index if not exists items_sync_idx on public.items (user_id, server_updated_at, id);
 create index if not exists outfits_sync_idx on public.outfits (user_id, server_updated_at, id);
